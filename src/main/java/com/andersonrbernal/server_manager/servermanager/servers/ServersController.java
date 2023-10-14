@@ -6,22 +6,21 @@ import com.andersonrbernal.server_manager.servermanager.servers.http.ServerRespo
 import com.andersonrbernal.server_manager.servermanager.servers.services.ServersServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 
 import static java.time.LocalDateTime.now;
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
-@RequestMapping("/servers")
+@CrossOrigin(origins = "http://localhost:4200")
+@RequestMapping("/api/v1/servers")
 @RequiredArgsConstructor
 public class ServersController {
     private final ServersServiceImpl serversService;
@@ -73,7 +72,7 @@ public class ServersController {
     }
 
     @PostMapping
-    public ResponseEntity<ServerResponse> getServers(@RequestBody @Valid Server server) {
+    public ResponseEntity<ServerResponse> saveServer(@RequestBody @Valid Server server) {
         Server createdServer = serversService.create(server);
         Map<?, ?> data = Map.of("server", createdServer);
 
@@ -107,8 +106,14 @@ public class ServersController {
     }
 
     @GetMapping(path = "/images/{filename}", produces = MediaType.IMAGE_PNG_VALUE)
-    public byte[] getServerImage(@PathVariable("filename") String filename) throws IOException {
-        Path path = Paths.get(System.getProperty("user.home") + "Downloads/images/" + filename);
-        return Files.readAllBytes(path);
+    public ResponseEntity<byte[]> getServerImage(@PathVariable("filename") String filename) throws IOException {
+        ClassPathResource resource = new ClassPathResource("images/" + filename);
+
+        if (resource.exists()) {
+            byte[] imageBytes = Files.readAllBytes(resource.getFile().toPath());
+            return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(imageBytes);
+        }
+
+        return ResponseEntity.notFound().build();
     }
 }
