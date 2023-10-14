@@ -35,7 +35,7 @@ public class ServersService implements ServersServiceImpl {
     @Override
     public Server create(Server server) {
         log.info("Saving new server: {}", server.getName());
-        server.setImageUrl(server.getImageUrl());
+        server.setImageUrl(setServerImageUrl());
         return serverRepository.save(server);
     }
 
@@ -67,7 +67,8 @@ public class ServersService implements ServersServiceImpl {
 
     private String setServerImageUrl() {
         String[] imageNames = {"server1.png", "server2.png", "server3.png", "server4.png"};
-        String path = "/api/v1/servers/images" + imageNames[new Random().nextInt(4)];
+        int randomImageIndex = new Random().nextInt(4);
+        String path = "/api/v1/servers/images/" + imageNames[randomImageIndex];
         return ServletUriComponentsBuilder.fromCurrentContextPath().path(path).toUriString();
     }
 }
